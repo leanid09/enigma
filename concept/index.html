@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Enigma — концепт главной страницы</title>
+<!-- Redesign concept, not the official site. Bottle drawings are generated from each
+     model's real height, diameter and neck size; replace them with real photography. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --ink: #0c3741;          /* kept from the current site */
+    --ink-2: #4a6166;        /* secondary text, 6.6:1 on white */
+    --line: #e3e9e7;
+    --bg: #ffffff;
+    --surface: #f3f6f4;
+    --mint: #e6f3e7;
+    --green: #188018;        /* accessible brand green, 5.1:1 */
+    --green-ink: #127512;    /* green text on mint */
+    --brand: #00a10a;        /* logo green, for small marks only */
+    --r-xl: 32px; --r-lg: 24px; --r: 18px; --r-sm: 12px;
+    --shadow: 0 1px 2px rgba(12, 55, 65, .05), 0 18px 40px -18px rgba(12, 55, 65, .22);
+    --wrap: 1240px;
+    --pad: clamp(20px, 4vw, 48px);
+    --font: "Onest", "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+  img, svg { display: block; }
+  a { color: inherit; text-decoration: none; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid rgba(24, 128, 24, .45); outline-offset: 2px; border-radius: 8px; }
+  .wrap { max-width: calc(var(--wrap) + 2 * var(--pad)); margin: 0 auto; padding: 0 var(--pad); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---------- type ---------- */
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 18px; color: var(--ink-2); font: 600 13px/1 var(--font); letter-spacing: .08em; text-transform: uppercase; }
+  .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+  h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -.02em; }
+  h1 { font-size: clamp(40px, 4.3vw, 62px); line-height: 1.05; letter-spacing: -.03em; }
+  h2 { font-size: clamp(30px, 3.2vw, 44px); line-height: 1.1; }
+  h3 { font-size: 20px; line-height: 1.3; letter-spacing: -.01em; }
+  .lead { margin: 20px 0 0; max-width: 36rem; color: var(--ink-2); font-size: clamp(17px, 1.4vw, 19px); line-height: 1.55; }
+  .muted { color: var(--ink-2); }
+
+  /* ---------- buttons ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 52px; padding: 0 26px; border: 0; border-radius: 999px; cursor: pointer; font: 600 16px/1 var(--font); transition: background .2s, color .2s, border-color .2s, transform .2s; white-space: nowrap; }
+  .btn--primary { background: var(--green); color: #fff; }
+  .btn--primary:hover { background: var(--green-ink); }
+  .btn--ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+  .btn--ghost:hover { box-shadow: inset 0 0 0 1px var(--ink); }
+  .btn--sm { height: 42px; padding: 0 18px; font-size: 15px; }
+  .btn .count { display: none; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #fff; color: var(--green); font-size: 13px; line-height: 22px; text-align: center; }
+  .has-items .btn .count { display: inline-block; }
+  .arrow::after { content: "→"; transition: transform .2s; }
+  .arrow:hover::after { transform: translateX(3px); }
+  .link { display: inline-flex; gap: 8px; color: var(--green); font-weight: 600; }
+
+  /* ---------- header ---------- */
+  .header { position: sticky; top: 0; z-index: 20; background: rgba(255, 255, 255, .86); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--line); }
+  .header .wrap { display: flex; align-items: center; gap: 36px; height: 72px; }
+  .logo { display: flex; align-items: center; flex: none; }
+  .logo img { height: 30px; width: auto; }
+  .wordmark { font: 700 26px/1 var(--font); letter-spacing: -.03em; color: var(--brand); }
+  .nav { display: flex; gap: 28px; font-size: 15px; color: var(--ink-2); }
+  .nav a:hover { color: var(--ink); }
+  .header-actions { display: flex; align-items: center; gap: 22px; margin-left: auto; }
+  .phone { font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .menu-btn { display: none; width: 44px; height: 44px; margin-left: auto; border: 0; border-radius: 50%; background: var(--surface); cursor: pointer; }
+  .menu-btn span, .menu-btn span::before, .menu-btn span::after { display: block; width: 18px; height: 2px; margin: 0 auto; background: var(--ink); border-radius: 2px; position: relative; content: ""; }
+  .menu-btn span::before { position: absolute; top: -6px; } .menu-btn span::after { position: absolute; top: 6px; }
+  .mobile-menu { display: none; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: clamp(40px, 6vw, 88px) 0 clamp(40px, 5vw, 72px); }
+  .hero .wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+  .ticks { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 30px 0 0; padding: 0; list-style: none; color: var(--ink-2); font-size: 15px; }
+  .ticks li { display: flex; align-items: center; gap: 8px; }
+  .ticks li::before { content: ""; width: 16px; height: 16px; border-radius: 50%; background: var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%23127512' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat; }
+  .stage { position: relative; height: clamp(340px, 33vw, 470px); padding: 28px 28px 0; border-radius: var(--r-xl); background: radial-gradient(110% 90% at 72% 12%, #fff 0%, #f7faf8 35%, var(--surface) 70%); overflow: hidden; }
+  .lineup { position: absolute; left: 28px; right: 28px; bottom: 64px; display: flex; align-items: flex-end; justify-content: space-between; }
+  .lineup figure { position: relative; margin: 0; }
+  .lineup figcaption { position: absolute; left: 50%; top: calc(100% + 12px); transform: translateX(-50%); font-size: 12px; line-height: 1.3; color: var(--ink-2); text-align: center; white-space: nowrap; }
+  .stage-floor { position: absolute; left: 0; right: 0; bottom: 64px; height: 1px; background: #dfe7e4; }
+  .stage-note { position: absolute; top: 24px; right: 26px; font-size: 12px; color: var(--ink-2); }
+
+  /* ---------- facts ---------- */
+  .facts { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .facts .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .fact { padding: 30px 24px 30px 0; }
+  .fact + .fact { padding-left: 24px; border-left: 1px solid var(--line); }
+  .fact b { display: block; font: 600 clamp(32px, 3vw, 44px)/1 var(--font); letter-spacing: -.03em; }
+  .fact span { display: block; margin-top: 10px; color: var(--ink-2); font-size: 15px; line-height: 1.45; }
+
+  /* ---------- sections ---------- */
+  .section { padding: clamp(72px, 9vw, 128px) 0 0; }
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 40px; }
+  .section-head .lead { margin-top: 14px; }
+
+  /* applications */
+  .apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .app { position: relative; display: flex; flex-direction: column; min-height: 360px; padding: 30px; border-radius: var(--r-lg); background: var(--surface); overflow: hidden; transition: transform .25s, box-shadow .25s; }
+  .app:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .app p { margin: 10px 0 0; max-width: 22rem; color: var(--ink-2); }
+  .app .count { margin-top: 18px; font-size: 14px; color: var(--ink-2); }
+  .app .art { position: absolute; right: 26px; bottom: 24px; display: flex; align-items: flex-end; gap: 10px; }
+  .app .link { margin-top: auto; position: relative; z-index: 1; }
+  .more { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 22px; color: var(--ink-2); font-size: 15px; }
+  .pill { display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); font-size: 15px; transition: box-shadow .2s; }
+  .pill:hover { box-shadow: inset 0 0 0 1px var(--ink); }
+
+  /* catalog */
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .seg { display: inline-flex; min-width: 0; max-width: 100%; padding: 4px; border-radius: 999px; background: var(--surface); }
+  .seg button { flex: none; height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-2); cursor: pointer; font-size: 15px; font-weight: 500; white-space: nowrap; }
+  .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(12, 55, 65, .12); }
+  .select { position: relative; }
+  .select select { appearance: none; height: 48px; padding: 0 40px 0 18px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; font-size: 15px; }
+  .select::after { content: ""; position: absolute; right: 18px; top: 50%; width: 7px; height: 7px; margin-top: -6px; border: solid var(--ink-2); border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); pointer-events: none; }
+  .result { margin-left: auto; color: var(--ink-2); font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: #fff; transition: box-shadow .25s, border-color .25s; }
+  .card:hover { box-shadow: var(--shadow); border-color: transparent; }
+  .card[hidden] { display: none; }
+  .card .pic { position: relative; height: 230px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 18px; background: var(--surface); }
+  .badge { position: absolute; top: 14px; left: 14px; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--mint); color: var(--green-ink); font-size: 13px; font-weight: 600; line-height: 26px; }
+  .card .info { display: flex; flex-direction: column; flex: 1; padding: 18px 20px 20px; }
+  .card h3 { font-size: 18px; }
+  .specs { margin: 6px 0 0; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+  .add { margin-top: auto; padding-top: 16px; }
+  .add button { width: 100%; height: 42px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; font-size: 15px; font-weight: 600; transition: box-shadow .2s, background .2s, color .2s; }
+  .add button:hover { box-shadow: inset 0 0 0 1px var(--ink); }
+  .add button[aria-pressed="true"] { background: var(--mint); box-shadow: inset 0 0 0 1px var(--green); color: var(--green-ink); }
+  .empty { display: none; padding: 40px; border: 1px dashed var(--line); border-radius: var(--r); color: var(--ink-2); text-align: center; }
+  .catalog-foot { display: flex; justify-content: center; margin-top: 32px; }
+
+  /* decoration */
+  .deco { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .deco .pic { height: 280px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 22px; border-radius: var(--r-lg); background: var(--surface); }
+  .deco h3 { margin-top: 22px; }
+  .deco p { margin: 8px 0 0; color: var(--ink-2); }
+
+  /* process */
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  .steps li { position: relative; padding: 34px 28px 0 0; border-top: 1px solid var(--line); counter-increment: step; }
+  .steps li::before { content: ""; position: absolute; top: -5px; left: 0; width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+  .steps li::after { content: "0" counter(step); position: absolute; top: 10px; left: 0; color: var(--green); font-size: 13px; font-weight: 600; letter-spacing: .06em; }
+  .steps h3 { margin-top: 10px; font-size: 18px; }
+  .steps p { margin: 8px 0 0; color: var(--ink-2); font-size: 15px; }
+
+  /* production */
+  .split { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(32px, 5vw, 80px); align-items: center; }
+  .video { position: relative; aspect-ratio: 4 / 3; border-radius: var(--r-xl); overflow: hidden; background: radial-gradient(90% 80% at 30% 20%, #1d5662 0%, var(--ink) 60%, #082a32 100%); color: #fff; }
+  .video::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255, 255, 255, .035) 0 2px, transparent 2px 22px); }
+  .play { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .16); cursor: pointer; backdrop-filter: blur(6px); }
+  .play::after { content: ""; position: absolute; left: 31px; top: 25px; border-style: solid; border-width: 13px 0 13px 21px; border-color: transparent transparent transparent #fff; }
+  .video figcaption { position: absolute; left: 28px; bottom: 24px; font-size: 14px; color: rgba(255, 255, 255, .8); }
+  .checks { margin: 28px 0 32px; padding: 0; list-style: none; }
+  .checks li { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .checks li:last-child { border-bottom: 1px solid var(--line); }
+  .checks b { flex: none; width: 128px; font-weight: 600; }
+  .checks span { color: var(--ink-2); }
+
+  /* documents */
+  .docs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .doc { padding: 24px; border: 1px solid var(--line); border-radius: var(--r); }
+  .doc small { display: block; color: var(--ink-2); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .doc b { display: block; margin-top: 10px; font-size: 19px; font-weight: 600; letter-spacing: -.01em; }
+  .doc > span { display: block; margin-top: 6px; color: var(--ink-2); font-size: 15px; }
+  .tbd { padding: 0 4px; border-radius: 4px; background: #fff4d6; color: #6b4e00; }
+
+  /* contact */
+  .contact { margin-top: clamp(72px, 9vw, 128px); }
+  .contact-box { display: grid; grid-template-columns: 1fr 1.05fr; gap: clamp(32px, 5vw, 72px); padding: clamp(32px, 5vw, 72px); border-radius: var(--r-xl); background: var(--ink); color: #fff; }
+  .contact-box .eyebrow { color: #b9cacc; }
+  .contact-box .lead { color: #b9cacc; }
+  .channels { margin: 36px 0 0; padding: 0; list-style: none; }
+  .channels li { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 14px 0; border-top: 1px solid rgba(255, 255, 255, .12); }
+  .channels small { color: #b9cacc; font-size: 14px; }
+  .channels a { font-weight: 500; }
+  .channels a:hover { color: #9fe0a8; }
+  .form { padding: clamp(22px, 3vw, 32px); border-radius: var(--r-lg); background: #fff; color: var(--ink); }
+  .form h3 { font-size: 22px; }
+  .picked { margin: 14px 0 6px; padding: 14px; border-radius: var(--r-sm); background: var(--surface); font-size: 14px; color: var(--ink-2); }
+  .picked ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+  .picked li button { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); cursor: pointer; font-size: 14px; }
+  .picked li button::after { content: "×"; color: var(--ink-2); font-size: 16px; }
+  .field { display: block; margin-top: 14px; }
+  .field > span { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; }
+  .field input, .field textarea { width: 100%; padding: 13px 16px; border: 0; border-radius: var(--r-sm); background: var(--surface); box-shadow: inset 0 0 0 1px transparent; font-size: 16px; transition: box-shadow .2s, background .2s; }
+  .field input:focus, .field textarea:focus { outline: none; background: #fff; box-shadow: inset 0 0 0 1.5px var(--green); }
+  .field textarea { min-height: 96px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .drop { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 14px 16px; border: 1.5px dashed var(--line); border-radius: var(--r-sm); color: var(--ink-2); cursor: pointer; font-size: 15px; }
+  .drop b { color: var(--green); font-weight: 600; }
+  .drop input { display: none; }
+  .consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; color: var(--ink-2); font-size: 13px; line-height: 1.45; }
+  .consent input { width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--green); flex: none; }
+  .form .btn { width: 100%; margin-top: 18px; }
+  .form-note { margin: 12px 0 0; color: var(--ink-2); font-size: 13px; text-align: center; }
+  .sent { display: none; margin-top: 14px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--mint); color: var(--green-ink); font-size: 14px; }
+
+  /* footer */
+  .footer { margin-top: clamp(64px, 8vw, 104px); padding: 56px 0 28px; border-top: 1px solid var(--line); font-size: 15px; }
+  .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 32px; }
+  .footer h4 { margin: 0 0 14px; color: var(--ink-2); font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .footer ul { margin: 0; padding: 0; list-style: none; }
+  .footer li + li { margin-top: 8px; }
+  .footer a:hover { color: var(--green); }
+  .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+
+  .mobile-bar { display: none; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1100px) {
+    .nav { gap: 20px; } .phone { display: none; }
+    .grid { grid-template-columns: repeat(3, 1fr); }
+    .steps { grid-template-columns: repeat(3, 1fr); row-gap: 36px; }
+  }
+  @media (max-width: 900px) {
+    .nav, .header-actions { display: none; }
+    .menu-btn { display: block; }
+    .mobile-menu { position: fixed; inset: 72px 0 0; z-index: 19; flex-direction: column; gap: 4px; padding: 24px var(--pad); background: #fff; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 22px; font-weight: 600; }
+    .hero .wrap, .split, .contact-box { grid-template-columns: 1fr; }
+    .stage { height: 380px; }
+    .facts .wrap { grid-template-columns: repeat(2, 1fr); }
+    .fact:nth-child(3) { padding-left: 0; border-left: 0; }
+    .fact:nth-child(n+3) { border-top: 1px solid var(--line); }
+    .apps, .deco, .docs { grid-template-columns: 1fr; }
+    .app { min-height: 320px; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .section-head { flex-direction: column; align-items: flex-start; }
+    .mobile-bar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 30; display: flex; gap: 8px; padding: 8px; border-radius: 999px; background: rgba(255, 255, 255, .92); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: var(--shadow), 0 0 0 1px var(--line); transform: translateY(160%); transition: transform .3s; }
+    .mobile-bar.show { transform: none; }
+    .mobile-bar .btn { height: 48px; }
+    .mobile-bar .btn--primary { flex: 1; }
+    .footer { padding-bottom: 104px; }
+  }
+  @media (max-width: 600px) {
+    .filters { flex-direction: column; align-items: stretch; }
+    .seg { overflow-x: auto; scrollbar-width: none; }
+    .select select { width: 100%; }
+    .result { margin-left: 0; }
+    .card .pic { height: 170px; }
+    .deco .pic { height: 210px; }
+    .card .info { padding: 14px 14px 16px; }
+    .card h3 { font-size: 16px; }
+    .steps { grid-template-columns: 1fr; }
+    .steps li { padding-right: 0; }
+    .row2 { grid-template-columns: 1fr; }
+    .channels li { grid-template-columns: 1fr; gap: 2px; }
+    .checks li { flex-direction: column; gap: 2px; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .lineup figcaption { font-size: 11px; }
+    .stage-note { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<!-- shared gradients for the generated bottle drawings -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g-white" x1="0" x2="1"><stop offset="0" stop-color="#dde4e1"/><stop offset=".3" stop-color="#ffffff"/><stop offset=".62" stop-color="#f4f7f5"/><stop offset="1" stop-color="#cfd8d4"/></linearGradient>
+    <linearGradient id="g-clear" x1="0" x2="1"><stop offset="0" stop-color="#c3d8d3" stop-opacity=".85"/><stop offset=".28" stop-color="#f2f8f6" stop-opacity=".45"/><stop offset=".72" stop-color="#e3efec" stop-opacity=".4"/><stop offset="1" stop-color="#aac6c0" stop-opacity=".9"/></linearGradient>
+    <linearGradient id="g-green" x1="0" x2="1"><stop offset="0" stop-color="#74bf80"/><stop offset=".3" stop-color="#c6ebcb"/><stop offset=".66" stop-color="#a4d9ab"/><stop offset="1" stop-color="#5aa967"/></linearGradient>
+    <linearGradient id="g-shade" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".12"/><stop offset=".32" stop-color="#fff" stop-opacity=".38"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient>
+    <radialGradient id="g-shadow"><stop offset="0" stop-color="#0c3741" stop-opacity=".24"/><stop offset="1" stop-color="#0c3741" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g-foil" x1="0" x2="1"><stop offset="0" stop-color="#a87b24"/><stop offset=".38" stop-color="#f7e8b4"/><stop offset=".62" stop-color="#d3a641"/><stop offset="1" stop-color="#8f6a1f"/></linearGradient>
+    <linearGradient id="g-transfer" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a5c"/><stop offset=".36" stop-color="#ffd166"/><stop offset=".7" stop-color="#3ccf91"/><stop offset="1" stop-color="#2b8fd6"/></linearGradient>
+  </defs>
+</svg>
+
+<header class="header">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Enigma — на главную"><img src="../reference/assets/logo.png" alt="Enigma" onerror="this.outerHTML='<span class=&quot;wordmark&quot;>Enigma</span>'"></a>
+    <nav class="nav" aria-label="Основное меню">
+      <a href="#catalog">Каталог</a><a href="#decor">Декор</a><a href="#production">Производство</a><a href="#docs">Документы</a><a href="#contact">Контакты</a>
+    </nav>
+    <div class="header-actions">
+      <a class="phone" href="tel:+375222705222">+375 222 705-222</a>
+      <a class="btn btn--primary btn--sm" href="#contact"><span class="cta-label">Запросить расчёт</span><span class="count" aria-label="моделей в запросе">0</span></a>
+    </div>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-menu"><span></span><span class="sr-only">Меню</span></button>
+  </div>
+</header>
+<nav class="mobile-menu" id="mobile-menu" aria-label="Мобильное меню">
+  <a href="#catalog">Каталог</a><a href="#decor">Декор</a><a href="#production">Производство</a><a href="#docs">Документы</a><a href="#contact">Контакты</a>
+  <a href="tel:+375222705222">+375 222 705-222</a>
+</nav>
+
+<main id="top">
+  <!-- 1. Hero: product first, one clear action -->
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Производитель пластиковой упаковки · с 1992 года</p>
+        <h1>Флаконы для вашего бренда — от эскиза до&nbsp;отгрузки</h1>
+        <p class="lead">Проектируем, производим и декорируем флаконы из ПЭТ, ПЭ и ПВХ, подбираем укупорку — для косметики, бытовой химии и медицины. Собственное производство в Могилёве.</p>
+        <div class="hero-actions">
+          <a class="btn btn--primary" href="#contact">Запросить расчёт</a>
+          <a class="btn btn--ghost arrow" href="#catalog">Подобрать флакон</a>
+        </div>
+        <ul class="ticks"><li>Прототип под ваш дизайн</li><li>Печать и тиснение в одном цикле</li><li>Доставка по РБ, РФ и СНГ</li></ul>
+      </div>
+      <div class="stage" aria-label="Модели из каталога в реальном соотношении размеров">
+        <span class="stage-note">В реальном соотношении размеров</span>
+        <div class="stage-floor"></div>
+        <div class="lineup" id="lineup"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Proof in four numbers -->
+  <section class="facts" aria-label="Компания в цифрах">
+    <div class="wrap">
+      <div class="fact"><b>1992</b><span>год основания компании</span></div>
+      <div class="fact"><b>2000</b><span>запуск собственного производства</span></div>
+      <div class="fact"><b>40+</b><span>моделей флаконов и&nbsp;крышек</span></div>
+      <div class="fact"><b>5</b><span>материалов: ПЭТ, ПЭТ-Г, ПЭ, ПВХ, ПП</span></div>
+    </div>
+  </section>
+
+  <!-- 3. Three core segments, always visible -->
+  <section class="section" id="segments">
+    <div class="wrap">
+      <div class="section-head">
+        <div><p class="eyebrow">Назначение</p><h2>Упаковка под ваш продукт</h2></div>
+      </div>
+      <div class="apps">
+        <a class="app" href="#catalog" data-filter="cosmetics">
+          <h3>Косметика</h3>
+          <p>Кремы, лосьоны, шампуни, тоники. Флип-топ и диск-топ, дозаторы, глухие крышки.</p>
+          <span class="count">13 моделей</span>
+          <span class="link arrow">Смотреть</span>
+          <span class="art" data-art="uno100,ruby300"></span>
+        </a>
+        <a class="app" href="#catalog" data-filter="household">
+          <h3>Бытовая химия</h3>
+          <p>Средства для дома, гели, жидкости для фумигаторов. Триггеры и мерные колпачки.</p>
+          <span class="count">16 моделей</span>
+          <span class="link arrow">Смотреть</span>
+          <span class="art" data-art="naturae,fum45"></span>
+        </a>
+        <a class="app" href="#catalog" data-filter="medical">
+          <h3>Медицина</h3>
+          <p>Растворы и капли. Флаконы с капельницей и крышкой с контролем первого вскрытия.</p>
+          <span class="count">9 моделей</span>
+          <span class="link arrow">Смотреть</span>
+          <span class="art" data-art="tear360,vika25"></span>
+        </a>
+      </div>
+      <div class="more">Ещё: <a class="pill" href="#catalog">Крышки и колпачки</a><a class="pill" href="#catalog">Эксклюзивные формы</a><a class="pill" href="#catalog">Импортная продукция</a></div>
+    </div>
+  </section>
+
+  <!-- 4. Catalog with real filters and specs on the card -->
+  <section class="section" id="catalog">
+    <div class="wrap">
+      <div class="section-head">
+        <div><p class="eyebrow">Каталог</p><h2>Подберите флакон</h2><p class="lead">Характеристики видны сразу. Добавьте модели в запрос — менеджер пришлёт расчёт по всем сразу.</p></div>
+      </div>
+      <div class="filters">
+        <div class="seg" role="group" aria-label="Назначение">
+          <button type="button" data-use="all" aria-pressed="true">Все</button>
+          <button type="button" data-use="cosmetics" aria-pressed="false">Косметика</button>
+          <button type="button" data-use="household" aria-pressed="false">Бытовая химия</button>
+          <button type="button" data-use="medical" aria-pressed="false">Медицина</button>
+        </div>
+        <label class="select"><span class="sr-only">Объём</span>
+          <select id="f-vol"><option value="">Любой объём</option><option value="0-50">до 50 мл</option><option value="50-150">50–150 мл</option><option value="150-9999">от 150 мл</option></select>
+        </label>
+        <label class="select"><span class="sr-only">Материал</span>
+          <select id="f-mat"><option value="">Любой материал</option><option>ПЭТ</option><option>ПЭ</option><option>ПВХ</option></select>
+        </label>
+        <span class="result" id="result" aria-live="polite"></span>
+      </div>
+      <div class="grid" id="grid"></div>
+      <p class="empty" id="empty">В превью нет таких моделей. В полном каталоге 46 позиций — или опишите задачу, подберём.</p>
+      <div class="catalog-foot"><a class="btn btn--ghost arrow" href="#catalog">Весь каталог · 46 позиций</a></div>
+    </div>
+  </section>
+
+  <!-- 5. Decoration -->
+  <section class="section" id="decor">
+    <div class="wrap">
+      <div class="section-head">
+        <div><p class="eyebrow">Декор</p><h2>Печать и тиснение — на&nbsp;своём производстве</h2></div>
+      </div>
+      <div class="deco">
+        <article><div class="pic" data-deco="silk"></div><h3>Шелкография</h3><p>Стойкая печать краской прямо по флакону: логотип, состав, шкала объёма.</p></article>
+        <article><div class="pic" data-deco="transfer"></div><h3>Термоперенос</h3><p>Полноцветные изображения, фотографии и сложные градиенты.</p></article>
+        <article><div class="pic" data-deco="foil"></div><h3>Тиснение фольгой</h3><p>Металлизированный акцент: золото, серебро, цветная фольга.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Process -->
+  <section class="section" id="process">
+    <div class="wrap">
+      <div class="section-head"><div><p class="eyebrow">Как мы работаем</p><h2>Пять шагов до готовой партии</h2></div></div>
+      <ol class="steps">
+        <li><h3>Заявка</h3><p>Опишите продукт и тираж или пришлите референс.</p></li>
+        <li><h3>Подбор и расчёт</h3><p>Предложим модели из каталога или новую форму, рассчитаем цену и сроки.</p></li>
+        <li><h3>Прототип</h3><p>Разработаем упаковку и декор, согласуем образец.</p></li>
+        <li><h3>Производство</h3><p>Выпускаем партию на собственном оборудовании.</p></li>
+        <li><h3>Отгрузка</h3><p>Доставка по Беларуси, России и странам СНГ.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 7. Production (the factory video moves here from the hero) -->
+  <section class="section" id="production">
+    <div class="wrap split">
+      <figure class="video" style="margin:0"><button class="play" type="button" aria-label="Смотреть видео с производства"></button><figcaption>Видео с производства, Могилёв</figcaption></figure>
+      <div>
+        <p class="eyebrow">Производство</p>
+        <h2>Собственное производство с&nbsp;2000&nbsp;года</h2>
+        <p class="lead">Выпускаем продукцию из полиэтилена, ПВХ и ПЭТ на оборудовании из Германии, Японии, Италии, США, Кореи и Китая.</p>
+        <ul class="checks">
+          <li><b>Литьё с раздувом</b><span>Машина Jomar (США) делает флаконы из ПВХ за один цикл — для агрессивных жидкостей.</span></li>
+          <li><b>Декор</b><span>Шелкография, термоперенос и тиснение фольгой без подрядчиков.</span></li>
+          <li><b>Контроль</b><span>Строгий контроль качества всей продукции.</span></li>
+        </ul>
+        <a class="link arrow" href="#production">Подробнее о производстве</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Documents, with dates -->
+  <section class="section" id="docs">
+    <div class="wrap">
+      <div class="section-head"><div><p class="eyebrow">Документы и события</p><h2>Можно проверить</h2></div></div>
+      <div class="docs">
+        <div class="doc"><small>Сертификат</small><b>ISO 9001:2015</b><span>Действует до <span class="tbd">ДД.ММ.ГГГГ</span></span></div>
+        <div class="doc"><small>Выставки</small><b>RosUpack 2024 и 2025</b><span>Международная выставка упаковки, Москва</span></div>
+        <div class="doc"><small>Новинка</small><b>Tear 360 мл</b><span>Флакон из ПЭ с капельницей и крышкой с КПВ</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. One form, with the picked models attached -->
+  <section class="contact" id="contact">
+    <div class="wrap">
+      <div class="contact-box">
+        <div>
+          <p class="eyebrow">Запрос</p>
+          <h2>Расскажите о вашем продукте</h2>
+          <p class="lead">Подберём флакон и укупорку, рассчитаем стоимость и сроки. Приложите ТЗ, эскиз или фото референса — так будет быстрее.</p>
+          <ul class="channels">
+            <li><small>Телефон</small><a href="tel:+375222705222">+375 222 705-222</a></li>
+            <li><small>Мессенджеры</small><span><a href="https://telegram.me/gc_enigma">Telegram</a> · <a href="https://wa.me/375447775148">WhatsApp</a> · <a href="viber://chat?number=%2B375447775148">Viber</a></span></li>
+            <li><small>E-mail</small><a href="mailto:upakenigma@mail.ru">upakenigma@mail.ru</a></li>
+            <li><small>Адрес</small><span>212036, Могилёв, ул. Симонова 11/1</span></li>
+          </ul>
+        </div>
+        <form class="form" id="form" novalidate>
+          <h3>Запросить расчёт</h3>
+          <div class="picked" id="picked"><span id="picked-hint">Добавьте модели из каталога — или опишите задачу своими словами.</span><ul id="picked-list"></ul></div>
+          <div class="row2">
+            <label class="field"><span>Имя</span><input name="name" autocomplete="name" required></label>
+            <label class="field"><span>Телефон или e-mail</span><input name="contact" autocomplete="tel" required></label>
+          </div>
+          <label class="field"><span>Компания <span class="muted">(необязательно)</span></span><input name="company" autocomplete="organization"></label>
+          <label class="field"><span>Что нужно упаковать?</span><textarea name="brief" placeholder="Например: флакон 250 мл для шампуня, тираж 50 000, печать в 2 цвета"></textarea></label>
+          <label class="drop"><input type="file" name="files" multiple><span><b>Прикрепить файлы</b> — ТЗ, эскиз, фото</span></label>
+          <label class="consent"><input type="checkbox" required><span>Согласен на обработку персональных данных для ответа на запрос</span></label>
+          <button class="btn btn--primary" type="submit">Отправить запрос</button>
+          <p class="form-note">Менеджер свяжется с вами, чтобы уточнить детали.</p>
+          <p class="sent" id="sent" role="status">Это концепт: запрос не отправляется.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div><a class="logo" href="#top"><img src="../reference/assets/logo.png" alt="Enigma" onerror="this.outerHTML='<span class=&quot;wordmark&quot;>Enigma</span>'"></a><p class="muted" style="margin:14px 0 0;max-width:18rem">Пластиковая упаковка для косметики, бытовой химии и медицины. С 1992 года.</p></div>
+      <div><h4>Каталог</h4><ul><li><a href="#catalog">Косметика</a></li><li><a href="#catalog">Бытовая химия</a></li><li><a href="#catalog">Медицина</a></li><li><a href="#catalog">Крышки и колпачки</a></li></ul></div>
+      <div><h4>Компания</h4><ul><li><a href="#production">Производство</a></li><li><a href="#decor">Декор</a></li><li><a href="#docs">Документы</a></li><li><a href="#top">Новости</a></li></ul></div>
+      <div><h4>Контакты</h4><ul><li><a href="tel:+375222705222">+375 222 705-222</a></li><li><a href="tel:+375447775148">+375 44 777-51-48</a></li><li><a href="mailto:upakenigma@mail.ru">upakenigma@mail.ru</a></li><li>Могилёв, ул. Симонова 11/1</li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© ОДО «ЭНИГМА», 1992–2026 · УНП 700008381</span><span>Концепт редизайна — не официальный сайт компании</span></div>
+  </div>
+</footer>
+
+<div class="mobile-bar">
+  <a class="btn btn--ghost" href="tel:+375222705222" aria-label="Позвонить">Позвонить</a>
+  <a class="btn btn--primary" href="#contact"><span class="cta-label">Запросить расчёт</span><span class="count">0</span></a>
+</div>
+
+<script>
+/* ---------- data: real specs from upakenigma.com product pages (Nov 2026) ---------- */
+const PRODUCTS = [
+  { id: 'tear360',  name: 'Tear 360 мл',     vol: 360, mat: ['ПЭ'],       use: ['medical'],               isNew: true,
+    specs: ['360 мл · ПЭ', 'крышка с КПВ и капельница'],
+    draw: { h: 190, d: 60, neck: 28, shape: 'cyl', cap: 'dropper', tint: 'white', capColor: '#f4f6f5' } },   // drawing proportions approximate
+  { id: 'uno100',   name: 'Uno 100 мл',      vol: 100, mat: ['ПЭТ'],      use: ['cosmetics'],
+    specs: ['100 мл · горло 24 мм · ПЭТ', '150 × 35,3 мм · 22 г'],
+    draw: { h: 150, d: 35.3, neck: 24, shape: 'cyl', cap: 'flip', tint: 'clear', capColor: '#f4f6f5' } },
+  { id: 'ruby300',  name: 'Ruby 300 мл',     vol: 300, mat: ['ПЭТ'],      use: ['cosmetics', 'household'],
+    specs: ['300 мл · горло 28 мм · ПЭТ', '165 × 58 мм · 32 г'],
+    draw: { h: 165, d: 58, neck: 28, shape: 'taper', cap: 'pump', tint: 'clear', capColor: '#f4f6f5' } },
+  { id: 'basis250', name: 'Basis 250 мл',    vol: 250, mat: ['ПЭТ'],      use: ['cosmetics', 'household'],
+    specs: ['250 мл · горло 24 мм · ПЭТ', '165 × 49,1 мм · 20 г'],
+    draw: { h: 165, d: 49.1, neck: 24, shape: 'boston', cap: 'screw', tint: 'green', capColor: '#188018' } },
+  { id: 'naturae',  name: 'Naturae 285 мл',  vol: 285, mat: ['ПЭТ'],      use: ['household'],
+    specs: ['285 мл · горло 28 мм · ПЭТ', '185 × 61 мм · мерный колпачок'],
+    draw: { h: 185, d: 61, neck: 28, shape: 'cyl', cap: 'measure', tint: 'white', capColor: '#2b9a3b' } },
+  { id: 'fum45',    name: 'Fum 45 мл',       vol: 45,  mat: ['ПЭТ'],      use: ['household'],
+    specs: ['45 мл · горло 24 мм · ПЭТ', '58 × 41,5 мм · крышка и вставка'],
+    draw: { h: 58, d: 41.5, neck: 24, shape: 'round', cap: 'wick', tint: 'green', capColor: '#1f9a2e' } },
+  { id: 'vika25',   name: 'Vika 25 мл',      vol: 25,  mat: ['ПЭ', 'ПП'], use: ['medical'],
+    specs: ['25 мл · горло 13 мм · ПЭ, ПП', '64 × 31 мм · крышка и вставка'],
+    draw: { h: 64, d: 31, neck: 13, shape: 'round', cap: 'dropper', tint: 'white', capColor: '#f4f6f5' } },
+  { id: 'beta100',  name: 'Beta 100 мл',     vol: 100, mat: ['ПЭ', 'ПВХ'], use: ['household'],
+    specs: ['100 мл · горло 24 мм · ПЭ, ПВХ', '115 × 42 мм · 12 г'],
+    draw: { h: 115, d: 42, neck: 24, shape: 'oval', cap: 'flip', tint: 'white', capColor: '#0c3741' } },
+];
+const BY_ID = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+
+/* ---------- bottle drawing: geometry in millimetres, scaled to px ---------- */
+let uid = 0;
+function bottle(b, s, deco) {
+  const { h, d, neck: n, shape, cap, tint, capColor: C } = b;
+  const bw = d / 2, n2 = n / 2, id = 'b' + (++uid);
+  const nh = Math.min(14, Math.max(6, h * 0.1));
+  const sh = { cyl: d * .3, taper: d * .32, boston: d * .55, round: d * .5, oval: d * .62 }[shape];
+  const tw = shape === 'taper' ? bw * .82 : bw;
+  const rb = shape === 'round' || shape === 'oval' ? d * .28 : d * .1;
+  const y2 = nh + sh;
+  const body = `M${-n2} 0L${n2} 0L${n2} ${nh}C${n2} ${nh + sh * .55} ${tw} ${nh + sh * .3} ${tw} ${y2}L${bw} ${h - rb}Q${bw} ${h} ${bw - rb} ${h}L${-bw + rb} ${h}Q${-bw} ${h} ${-bw} ${h - rb}L${-tw} ${y2}C${-tw} ${nh + sh * .3} ${-n2} ${nh + sh * .55} ${-n2} ${nh}Z`;
+  const fill = { white: 'url(#g-white)', clear: 'url(#g-clear)', green: 'url(#g-green)' }[tint];
+  const edge = { white: '#c6d0cc', clear: 'rgba(60,100,95,.38)', green: 'rgba(24,110,30,.4)' }[tint];
+  const r = (x, y, w, hh, rx, f) => `<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="${rx}" fill="${f}" stroke="rgba(12,55,65,.18)" stroke-width=".35"/><rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="${rx}" fill="url(#g-shade)"/>`;
+  const cw = n * 1.16;
+  let capSvg = '', top = 0, half = Math.max(bw * 1.32, cw / 2);
+  if (cap === 'screw') { const ch = n * .62; top = nh - ch; capSvg = r(-cw / 2, top, cw, ch, 1, C); }
+  if (cap === 'flip') { const ch = n * .8; top = nh - ch; capSvg = r(-cw / 2, top, cw, ch, 1.6, C) + `<path d="M${-cw / 2} ${top + ch * .36}H${cw / 2}" stroke="rgba(12,55,65,.22)" stroke-width=".4"/>`; }
+  if (cap === 'measure') { const mw = d * .8, ch = d * .42; top = nh - ch; half = Math.max(half, mw / 2); capSvg = r(-mw / 2, top, mw, ch, 2.2, C) + [.25, .5, .75].map(k => `<path d="M${-mw / 2 + mw * k} ${top + 1.2}V${top + ch - 1.2}" stroke="rgba(0,0,0,.12)" stroke-width=".45"/>`).join(''); }
+  if (cap === 'dropper') { const ch = n * .5, by = nh - ch, th = n * 1.35; top = by - th; capSvg = r(-cw / 2, by, cw, ch, .9, C) + `<path d="M${-n * .36} ${by}L${-n * .08} ${top + 1.2}Q0 ${top - .6} ${n * .08} ${top + 1.2}L${n * .36} ${by}Z" fill="${C}" stroke="rgba(12,55,65,.2)" stroke-width=".35"/>`; }
+  if (cap === 'wick') { const ch = n * .45, by = nh - ch, ww = n * .6, wh = n * 1.7; top = by - wh; capSvg = r(-cw / 2, by, cw, ch, .9, C) + r(-ww / 2, top, ww, wh + .5, ww / 2.6, C); }
+  if (cap === 'pump') { const ch = n * .55, by = nh - ch, sw = n * .22, sth = n * .95, hw = n * .64, hh = n * .36; top = by - sth - hh;
+    half = Math.max(half, hw / 2 + n * .9);
+    capSvg = r(-n * .26, by - sth, sw * 2.3, sth + 1, .6, C) + r(-cw * .55, by, cw * 1.1, ch, 1, C) + r(-hw / 2, top, hw, hh, 1.4, C) + r(hw / 2 - 1, top + hh * .25, n * .9, hh * .38, .8, C); }
+  let decoSvg = '';
+  if (deco === 'silk') decoSvg = `<g fill="#0c3741"><circle cx="0" cy="${h * .46}" r="${d * .09}"/><rect x="${-bw * .55}" y="${h * .55}" width="${bw * 1.1}" height="${d * .045}" rx=".4"/><rect x="${-bw * .4}" y="${h * .61}" width="${bw * .8}" height="${d * .03}" rx=".4" opacity=".7"/><rect x="${-bw * .45}" y="${h * .66}" width="${bw * .9}" height="${d * .03}" rx=".4" opacity=".7"/></g>`;
+  if (deco === 'transfer') decoSvg = `<rect x="${-bw}" y="${h * .4}" width="${d}" height="${h * .34}" fill="url(#g-transfer)" opacity=".95"/><circle cx="${bw * .25}" cy="${h * .5}" r="${d * .12}" fill="#fff" opacity=".85"/>`;
+  if (deco === 'foil') decoSvg = `<rect x="${-bw}" y="${h * .5}" width="${d}" height="${d * .16}" fill="url(#g-foil)"/><rect x="${-bw}" y="${h * .5 + d * .22}" width="${d}" height="${d * .035}" fill="url(#g-foil)"/>`;
+  const glint = `<path d="M${-bw * .52} ${y2 + 2.5}V${h - rb - 1.5}" stroke="#fff" stroke-opacity="${tint === 'clear' ? .85 : .6}" stroke-width="${Math.max(1.1, d * .055)}" stroke-linecap="round"/>`;
+  const punt = tint === 'clear' ? `<ellipse cx="0" cy="${h - 1.4}" rx="${bw * .78}" ry="1.3" fill="rgba(60,100,95,.16)"/>` : '';
+  const vbTop = top - 1, vbH = h + 3.5 - vbTop, W = half * 2;
+  return `<svg width="${(W * s).toFixed(1)}" height="${(vbH * s).toFixed(1)}" viewBox="${-half} ${vbTop} ${W} ${vbH}" aria-hidden="true">
+    <defs><clipPath id="${id}"><path d="${body}"/></clipPath></defs>
+    <ellipse cx="0" cy="${h + .4}" rx="${bw * 1.25}" ry="${Math.min(2.9, Math.max(1.5, d * .05))}" fill="url(#g-shadow)"/>
+    <path d="${body}" fill="${fill}" stroke="${edge}" stroke-width=".45"/>
+    <g clip-path="url(#${id})">${decoSvg}${glint}${punt}</g>${capSvg}</svg>`;
+}
+const size = b => { const t = { screw: b.neck * .62, flip: b.neck * .8, measure: b.d * .42, dropper: b.neck * 1.85, wick: b.neck * 2.15, pump: b.neck * 1.86 }[b.cap];
+  const nh = Math.min(14, Math.max(6, b.h * 0.1)); return { w: Math.max(b.d * 1.32, b.neck * 1.16, b.cap === 'pump' ? b.neck * 2.44 : 0, b.cap === 'measure' ? b.d * .8 : 0), h: b.h + 4.5 + Math.max(0, t - nh) }; };
+const fit = (b, boxW, boxH, deco) => { const z = size(b); return bottle(b, Math.min(boxW / z.w, boxH / z.h), deco); };
+
+/* hero: a lineup at true relative scale */
+function drawLineup() {
+  const el = document.getElementById('lineup'); const W = el.clientWidth;
+  const ids = W < 480 ? ['naturae', 'basis250', 'uno100', 'vika25'] : ['naturae', 'ruby300', 'basis250', 'uno100', 'vika25'];
+  const H = el.parentElement.clientHeight - 64 - 64;
+  const dims = ids.map(id => size(BY_ID[id].draw));
+  const gap = W < 480 ? 10 : 16;
+  const s = Math.min((W - gap * (ids.length - 1)) / dims.reduce((a, z) => a + z.w, 0), H / Math.max(...dims.map(z => z.h)));
+  el.innerHTML = ids.map(id => { const p = BY_ID[id]; return `<figure>${bottle(p.draw, s)}<figcaption>${p.name.replace(/ \d+ мл$/, '')}<br>${p.vol} мл</figcaption></figure>`; }).join('');
+  // the SVGs extend 3.5 mm below each base for the shadow: lift the floor line to meet the bases
+  el.parentElement.querySelector('.stage-floor').style.bottom = (64 + 3.5 * s) + 'px';
+}
+
+/* segment cards and decoration examples */
+document.querySelectorAll('[data-art]').forEach(el => { el.innerHTML = el.dataset.art.split(',').map(id => fit(BY_ID[id].draw, 96, 160)).join(''); });
+const DECO_BOTTLE = { h: 165, d: 49.1, neck: 24, shape: 'boston', cap: 'screw', tint: 'white', capColor: '#f4f6f5' };
+document.querySelectorAll('[data-deco]').forEach(el => { el.innerHTML = fit(DECO_BOTTLE, 160, 220, el.dataset.deco); });
+
+/* catalog */
+const grid = document.getElementById('grid');
+grid.innerHTML = PRODUCTS.map(p => `
+  <article class="card" data-id="${p.id}">
+    <div class="pic">${p.isNew ? '<span class="badge">Новинка</span>' : ''}${fit(p.draw, 150, 180)}</div>
+    <div class="info"><h3>${p.name}</h3><p class="specs">${p.specs.join('<br>')}</p>
+      <div class="add"><button type="button" aria-pressed="false" data-add="${p.id}">+ В запрос</button></div></div>
+  </article>`).join('');
+
+const state = { use: 'all', vol: '', mat: '', picked: new Set() };
+function applyFilters() {
+  let shown = 0;
+  grid.querySelectorAll('.card').forEach(card => {
+    const p = BY_ID[card.dataset.id];
+    const [lo, hi] = state.vol ? state.vol.split('-').map(Number) : [0, Infinity];
+    const ok = (state.use === 'all' || p.use.includes(state.use)) && p.vol >= lo && p.vol < hi && (!state.mat || p.mat.includes(state.mat));
+    card.hidden = !ok; if (ok) shown++;
+  });
+  document.getElementById('result').textContent = `${shown} из ${PRODUCTS.length} в превью`;
+  document.getElementById('empty').style.display = shown ? 'none' : 'block';
+}
+document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+  state.use = btn.dataset.use;
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  applyFilters();
+}));
+document.getElementById('f-vol').addEventListener('change', e => { state.vol = e.target.value; applyFilters(); });
+document.getElementById('f-mat').addEventListener('change', e => { state.mat = e.target.value; applyFilters(); });
+document.querySelectorAll('.app[data-filter]').forEach(a => a.addEventListener('click', () => {
+  document.querySelector(`.seg button[data-use="${a.dataset.filter}"]`).click();
+}));
+
+/* request list shared by cards, header, mobile bar and form */
+function renderPicked() {
+  const n = state.picked.size;
+  document.body.classList.toggle('has-items', n > 0);
+  document.querySelectorAll('.count').forEach(c => { if (c.closest('.btn')) c.textContent = n; });
+  document.querySelectorAll('.cta-label').forEach(l => { l.textContent = n ? 'Запрос' : 'Запросить расчёт'; });
+  grid.querySelectorAll('[data-add]').forEach(b => { const on = state.picked.has(b.dataset.add); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '✓ В запросе' : '+ В запрос'; });
+  document.getElementById('picked-hint').textContent = n ? `В запросе ${n} ${n === 1 ? 'модель' : n < 5 ? 'модели' : 'моделей'}:` : 'Добавьте модели из каталога — или опишите задачу своими словами.';
+  document.getElementById('picked-list').innerHTML = [...state.picked].map(id => `<li><button type="button" data-remove="${id}" aria-label="Убрать ${BY_ID[id].name}">${BY_ID[id].name}</button></li>`).join('');
+}
+grid.addEventListener('click', e => { const b = e.target.closest('[data-add]'); if (!b) return; const id = b.dataset.add; state.picked.has(id) ? state.picked.delete(id) : state.picked.add(id); renderPicked(); });
+document.getElementById('picked-list').addEventListener('click', e => { const b = e.target.closest('[data-remove]'); if (b) { state.picked.delete(b.dataset.remove); renderPicked(); } });
+document.getElementById('form').addEventListener('submit', e => { e.preventDefault(); document.getElementById('sent').style.display = 'block'; });
+
+/* mobile menu */
+const menuBtn = document.querySelector('.menu-btn'), menu = document.getElementById('mobile-menu');
+menuBtn.addEventListener('click', () => { const open = menu.classList.toggle('open'); menuBtn.setAttribute('aria-expanded', String(open)); });
+menu.addEventListener('click', e => { if (e.target.closest('a')) { menu.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); } });
+
+/* mobile action bar: appears once the hero's own buttons have scrolled away */
+const bar = document.querySelector('.mobile-bar');
+new IntersectionObserver(([e]) => bar.classList.toggle('show', !e.isIntersecting && e.boundingClientRect.top < 0)).observe(document.querySelector('.hero-actions'));
+
+drawLineup(); applyFilters(); renderPicked();
+let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(drawLineup, 120); });
+</script>
+</body>
+</html>
