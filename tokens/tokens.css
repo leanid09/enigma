@@ -1,0 +1,211 @@
+/* GENERATED from tokens.json by scripts/build_tokens.py. Do not edit by hand. */
+/* Design tokens extracted from upakenigma.com (ODO «ENIGMA», Mogilev, Belarus) on 2026-11-11. Values are computed styles measured in headless Chromium at a 1440 px viewport unless a description says otherwise. Tokens under color.a11y are suggested substitutes and are NOT used by the live site. Format loosely follows the W3C Design Tokens draft ($type / $value). Regenerate tokens.css with: python3 scripts/build_tokens.py */
+:root {
+  /* Logo wordmark (sampled from logo.png) */
+  --enigma-color-green-logo: #009c08;
+  /* Primary-button gradient top and hover fill; product-card titles */
+  --enigma-color-green-bright: #00b300;
+  /* Nav bar, active category chip, 'узнать подробнее' (learn more) bar on cards */
+  --enigma-color-green-base: #26a226;
+  /* Nav item hover, quick-view bar hover */
+  --enigma-color-green-deep: #199619;
+  /* Primary-button gradient bottom */
+  --enigma-color-green-dark: #0b8e1c;
+  /* Ring bullets in the hero list */
+  --enigma-color-green-ring: #2db63e;
+  /* Underlined text links, breadcrumbs, news titles, e-mail links */
+  --enigma-color-green-link: #309330;
+  /* Stroke of the raster line icons (benefits, steps) */
+  --enigma-color-green-icon: #00a000;
+  /* 1 x 16 px separators between nav items */
+  --enigma-color-green-divider: #62af62;
+  /* Idle category chips and the 'Заказать звонок' (request a call) button */
+  --enigma-color-green-mint: #cbf3cb;
+  /* Hexagon outlines and arrows in 'Как мы работаем' (raster sprite icons-steps1.png) */
+  --enigma-color-teal: #00c4a4;
+  /* Headings and default body text */
+  --enigma-color-ink-black: #000000;
+  /* Secondary text: cards, news, steps, spec table, lead line */
+  --enigma-color-ink-teal: #0c3741;
+  /* Footer list text */
+  --enigma-color-ink-footer: #393e42;
+  /* Developer credit in the footer */
+  --enigma-color-ink-muted: #b2b2b2;
+  /* Text on green and on the hero video */
+  --enigma-color-ink-white: #ffffff;
+  /* Page background, cards, form card */
+  --enigma-color-surface-base: #ffffff;
+  /* Card footer band, page-title band, 10 px certificate frames */
+  --enigma-color-surface-tint: #f2f9fa;
+  /* Text inputs and the search field */
+  --enigma-color-surface-input: #f4f9fb;
+  /* Spec-table cells (separated by 1 px white lines) */
+  --enigma-color-surface-row: #f5f8f9;
+  /* 1 px product-card border */
+  --enigma-color-border-card: #e8e8e8;
+  /* 28 x 2 px rule under news titles */
+  --enigma-color-border-news-rule: #94b2c4;
+  /* 8 px ring bullets in the footer link list */
+  --enigma-color-border-bullet: #bbbbbb;
+  /* Carousel dots */
+  --enigma-color-border-dot: #d5dadc;
+  /* 3 px ring on an invalid input */
+  --enigma-color-feedback-error-ring: #fa94a1;
+  /* Error fill */
+  --enigma-color-feedback-error: #d53838;
+  /* SUGGESTED. Closest green to the brand with 5.07:1 against white, for text, links and button fills */
+  --enigma-color-a11y-green: #188018;
+  /* SUGGESTED. Hover/pressed state for color.a11y.green (5.87:1) */
+  --enigma-color-a11y-green-hover: #127512;
+  /* Primary button fill, top to bottom */
+  --enigma-gradient-button: linear-gradient(180deg, #00b300 0%, #0b8e1c 100%);
+  /* The live site self-hosts the commercial Museo Sans Cyrl. Golos Text is a free stand-in that is not on the live site */
+  --enigma-font-family-sans: MuseoSansCyrl, "Museo Sans Cyrl", "Museo Sans", "Golos Text", system-ui, sans-serif;
+  /* Live site maps this to the MuseoSansCyrl-100 file */
+  --enigma-font-weight-thin: 300;
+  /* Live site maps this to the MuseoSansCyrl-500 file: two @font-face rules claim 400 and the later one wins */
+  --enigma-font-weight-regular: 400;
+  /* No 500 face is declared, so this falls back to the 400 face */
+  --enigma-font-weight-medium: 500;
+  --enigma-font-weight-bold: 700;
+  --enigma-font-weight-black: 900;
+  /* Hero title (white with text-shadow) and the H1 of inner pages */
+  --enigma-typography-display: 900 40px/48px var(--enigma-font-family-sans);
+  --enigma-typography-display-font-size: 40px;
+  --enigma-typography-display-line-height: 48px;
+  --enigma-typography-display-font-weight: 900;
+  /* Centred section titles (.title-block) */
+  --enigma-typography-section-title: 900 33px/43px var(--enigma-font-family-sans);
+  --enigma-typography-section-title-font-size: 33px;
+  --enigma-typography-section-title-line-height: 43px;
+  --enigma-typography-section-title-font-weight: 900;
+  /* Eco banner title, white */
+  --enigma-typography-banner-title: 700 30px/36px var(--enigma-font-family-sans);
+  --enigma-typography-banner-title-font-size: 30px;
+  --enigma-typography-banner-title-line-height: 36px;
+  --enigma-typography-banner-title-font-weight: 700;
+  /* White digit on the green hexagon badge */
+  --enigma-typography-step-number: 900 30px/30px var(--enigma-font-family-sans);
+  --enigma-typography-step-number-font-size: 30px;
+  --enigma-typography-step-number-line-height: 30px;
+  --enigma-typography-step-number-font-weight: 900;
+  /* Thin lead line under the process steps, with a bold phrase */
+  --enigma-typography-lead: 300 24px/30px var(--enigma-font-family-sans);
+  --enigma-typography-lead-font-size: 24px;
+  --enigma-typography-lead-line-height: 30px;
+  --enigma-typography-lead-font-weight: 300;
+  /* Hero list items, white with text-shadow */
+  --enigma-typography-hero-bullet: 400 22px/30px var(--enigma-font-family-sans);
+  --enigma-typography-hero-bullet-font-size: 22px;
+  --enigma-typography-hero-bullet-line-height: 30px;
+  --enigma-typography-hero-bullet-font-weight: 400;
+  /* Product names on cards, color.green.bright */
+  --enigma-typography-card-title: 500 22px/26px var(--enigma-font-family-sans);
+  --enigma-typography-card-title-font-size: 22px;
+  --enigma-typography-card-title-line-height: 26px;
+  --enigma-typography-card-title-font-weight: 500;
+  --enigma-typography-card-title-letter-spacing: -0.3px;
+  /* Form-card title, 'Характеристики' heading (28px leading) */
+  --enigma-typography-form-title: 400 22px/30px var(--enigma-font-family-sans);
+  --enigma-typography-form-title-font-size: 22px;
+  --enigma-typography-form-title-line-height: 30px;
+  --enigma-typography-form-title-font-weight: 400;
+  /* Category chips */
+  --enigma-typography-chip: 400 21px/18px var(--enigma-font-family-sans);
+  --enigma-typography-chip-font-size: 21px;
+  --enigma-typography-chip-line-height: 18px;
+  --enigma-typography-chip-font-weight: 400;
+  /* News titles (color.green.link) */
+  --enigma-typography-news-title: 400 20px/26px var(--enigma-font-family-sans);
+  --enigma-typography-news-title-font-size: 20px;
+  --enigma-typography-news-title-line-height: 26px;
+  --enigma-typography-news-title-font-weight: 400;
+  /* Process-step captions (color.ink.teal) */
+  --enigma-typography-step-caption: 400 20px/30px var(--enigma-font-family-sans);
+  --enigma-typography-step-caption-font-size: 20px;
+  --enigma-typography-step-caption-line-height: 30px;
+  --enigma-typography-step-caption-font-weight: 400;
+  /* Benefit captions under the hero */
+  --enigma-typography-benefit: 400 18px/26px var(--enigma-font-family-sans);
+  --enigma-typography-benefit-font-size: 18px;
+  --enigma-typography-benefit-line-height: 26px;
+  --enigma-typography-benefit-font-weight: 400;
+  /* Default text, nav, inputs, SEO copy */
+  --enigma-typography-body: 400 16px/1.2 var(--enigma-font-family-sans);
+  --enigma-typography-body-font-size: 16px;
+  --enigma-typography-body-line-height: 1.2;
+  --enigma-typography-body-font-weight: 400;
+  /* News excerpts */
+  --enigma-typography-body-relaxed: 400 16px/26px var(--enigma-font-family-sans);
+  --enigma-typography-body-relaxed-font-size: 16px;
+  --enigma-typography-body-relaxed-line-height: 26px;
+  --enigma-typography-body-relaxed-font-weight: 400;
+  /* Primary buttons, white with text-shadow */
+  --enigma-typography-button: 700 16px/16px var(--enigma-font-family-sans);
+  --enigma-typography-button-font-size: 16px;
+  --enigma-typography-button-line-height: 16px;
+  --enigma-typography-button-font-weight: 700;
+  --enigma-typography-button-text-transform: uppercase;
+  /* Developer credit */
+  --enigma-typography-small: 400 14px/18px var(--enigma-font-family-sans);
+  --enigma-typography-small-font-size: 14px;
+  --enigma-typography-small-line-height: 18px;
+  --enigma-typography-small-font-weight: 400;
+  /* Registration number (УНП) in the footer */
+  --enigma-typography-legal: 400 12px/1.2 var(--enigma-font-family-sans);
+  --enigma-typography-legal-font-size: 12px;
+  --enigma-typography-legal-line-height: 1.2;
+  --enigma-typography-legal-font-weight: 400;
+  /* Fixed-width .w-center container, centred (135 px side margins at 1440) */
+  --enigma-size-container: 1170px;
+  /* Gap in the 3-column product grid (3 x 370 + 2 x 30 = 1170) */
+  --enigma-size-gutter: 30px;
+  /* White contact bar */
+  --enigma-size-header-top: 90px;
+  /* Green menu bar */
+  --enigma-size-nav-height: 50px;
+  /* Video hero at 1440 (about 510 px at 1920) */
+  --enigma-size-hero: 410px;
+  /* Product card width; image area 368 x 250, footer band 100 px */
+  --enigma-size-product-card: 370px;
+  /* Logo 155 x 48 in header and footer */
+  --enigma-size-logo-width: 155px;
+  /* Form inputs and full-width submit button */
+  --enigma-size-input-height: 60px;
+  /* Card button height (174 px wide) */
+  --enigma-size-button-small: 45px;
+  /* Category chips and the call-request button */
+  --enigma-size-chip-height: 38px;
+  /* Padding above section titles */
+  --enigma-size-section-space: 55px;
+  /* Buttons, inputs, call-request button */
+  --enigma-radius-sm: 4px;
+  /* Category chips */
+  --enigma-radius-pill: 20px;
+  /* News thumbnails, bullets, carousel dots */
+  --enigma-radius-round: 50%;
+  /* Inset bottom edge on primary buttons (brownish, rgba(167,83,0,.3)) */
+  --enigma-shadow-button: inset 0px -2px 0px 0px #a753004d;
+  /* Inset top shadow on inputs */
+  --enigma-shadow-input: inset 0px 2px 2px 0px #00000012;
+  /* Added to shadow.input on an invalid field */
+  --enigma-shadow-error-ring: 0px 0px 0px 3px #fa94a1;
+  /* text-shadow on primary-button labels */
+  --enigma-shadow-text-button: 0px 2px 2px 0px #0000004f;
+  /* text-shadow on hero text over video */
+  --enigma-shadow-text-hero: 1px 1px 1px 0px #000000;
+  /* Default 'transition: all 0.3s' */
+  --enigma-duration-base: 300ms;
+  /* 'transition: all 0.25s ease-in-out' */
+  --enigma-duration-fast: 250ms;
+  /* max-width: container 330 px, process steps hidden */
+  --enigma-breakpoint-xs: 499px;
+  /* max-width: minor tweaks only */
+  --enigma-breakpoint-sm: 599px;
+  /* max-width: container 500 px, one column, stacked menu */
+  --enigma-breakpoint-md: 767px;
+  /* max-width: minor tweaks. At tablet-portrait widths (768-834) the 968 px container is wider than the screen and is clipped */
+  --enigma-breakpoint-lg: 1000px;
+  /* max-width: container 968 px (1000 px between about 900 and 1024), two products per row, search hidden */
+  --enigma-breakpoint-xl: 1199px;
+}
