@@ -16,7 +16,7 @@ This repository holds the site's design, extracted from the live pages on 11 Nov
 | [`tokens/tokens.json`](tokens/tokens.json) | Design tokens (source of truth) |
 | [`tokens/tokens.css`](tokens/tokens.css) | The same tokens as CSS custom properties (`--enigma-*`), generated |
 | [`styleguide/index.html`](styleguide/index.html) | Visual reference: every component rebuilt from the tokens alone |
-| [`concept/`](concept) | A modern, minimal redesign sketch of the landing page (working HTML) and its rationale |
+| [`concept/`](concept) | A modern, minimal redesign sketch of the landing page (working HTML, animated 3D bottles) and its rationale |
 | [`screenshots/`](screenshots) | Full-page captures of the home, category, product, about and contacts pages, mobile home, and two bug captures |
 | [`scripts/fetch-assets.sh`](scripts/fetch-assets.sh) | Downloads the original logo, icons and backgrounds into the git-ignored `reference/` |
 | [`scripts/build_tokens.py`](scripts/build_tokens.py) | Regenerates `tokens.css` from `tokens.json` |

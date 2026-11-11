@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Enigma — концепт главной страницы</title>
-<!-- Redesign concept, not the official site. Bottle drawings are generated from each
-     model's real height, diameter and neck size; replace them with real photography. -->
+<!-- Redesign concept, not the official site. Bottles are real-time 3D (Three.js) built from each
+     model's real height, diameter and neck size, with flat SVG drawings as the fallback.
+     For production, replace them with the factory's CAD models or real photography. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
@@ -216,6 +217,17 @@
 
   .mobile-bar { display: none; }
 
+  /* ---------- 3D mode: set by the WebGL module; the SVG drawings stay as the fallback ---------- */
+  .gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .is-3d #lineup, .is-3d .stage-floor, .is-3d .card .pic > svg, .is-3d .deco .pic > svg, .is-3d .app .art > svg { display: none; }
+  .pending-3d #lineup, .pending-3d .stage-floor { visibility: hidden; }   /* avoid a flash of the flat drawing while 3D loads */
+  .is-3d .deco .pic { position: relative; overflow: hidden; }
+  .is-3d .app .art { left: 48%; right: 0; top: 30%; bottom: 0; }
+  .is-3d .app > :not(.art) { position: relative; z-index: 1; }
+  .badge, .stage-note { z-index: 1; }
+  .labels3d span { position: absolute; z-index: 1; transform: translateX(-50%); font-size: 12px; line-height: 1.3; color: var(--ink-2); text-align: center; white-space: nowrap; opacity: 0; transition: opacity .6s; pointer-events: none; }
+  .labels3d.on span { opacity: 1; }
+
   /* ---------- responsive ---------- */
   @media (max-width: 1100px) {
     .nav { gap: 20px; } .phone { display: none; }
@@ -315,6 +327,7 @@
         <span class="stage-note">В реальном соотношении размеров</span>
         <div class="stage-floor"></div>
         <div class="lineup" id="lineup"></div>
+        <div class="labels3d" id="labels3d" aria-hidden="true"></div>
       </div>
     </div>
   </section>
@@ -573,6 +586,7 @@ const fit = (b, boxW, boxH, deco) => { const z = size(b); return bottle(b, Math.
 /* hero: a lineup at true relative scale */
 function drawLineup() {
   const el = document.getElementById('lineup'); const W = el.clientWidth;
+  if (!W) return;                                   // hidden (3D mode is drawing the hero)
   const ids = W < 480 ? ['naturae', 'basis250', 'uno100', 'vika25'] : ['naturae', 'ruby300', 'basis250', 'uno100', 'vika25'];
   const H = el.parentElement.clientHeight - 64 - 64;
   const dims = ids.map(id => size(BY_ID[id].draw));
@@ -644,7 +658,360 @@ const bar = document.querySelector('.mobile-bar');
 new IntersectionObserver(([e]) => bar.classList.toggle('show', !e.isIntersecting && e.boundingClientRect.top < 0)).observe(document.querySelector('.hero-actions'));
 
 drawLineup(); applyFilters(); renderPicked();
+window.ENIGMA = { PRODUCTS, BY_ID, DECO_BOTTLE };   // shared with the 3D module below
+// give the 3D module a moment; if it can't start (no WebGL, offline), show the flat drawings
+document.documentElement.classList.add('pending-3d');
+setTimeout(() => document.documentElement.classList.remove('pending-3d'), 2500);
 let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(drawLineup, 120); });
+</script>
+
+<!-- ======================= 3D bottles (Three.js r160) =======================
+     One WebGL renderer draws every bottle scene and copies it into a small canvas
+     inside each card, so the page uses a single GPU context. Geometry is a lathe of
+     each model's real profile (height, diameter, neck) in millimetres. -->
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const { BY_ID, DECO_BOTTLE } = window.ENIGMA;
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DPR = Math.min(window.devicePixelRatio || 1, innerWidth < 900 ? 1.5 : 2);
+await document.fonts.ready;                       // label prints use Onest
+
+/* ---------- renderer, environment, materials ---------- */
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(1);                        // buffer sizes below are already in device pixels
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
+renderer.setScissorTest(true);
+const env = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const phys = o => new THREE.MeshPhysicalMaterial(o);
+// Clear plastic on a light backdrop reads through its rims: almost transparent where the
+// surface faces the camera, denser and tinted where you look through more material.
+function glass(color, faceAlpha, rimAlpha, side = THREE.FrontSide) {
+  const m = new THREE.MeshStandardMaterial({ color, roughness: .14, transparent: true, depthWrite: false, side, envMapIntensity: .3 });
+  m.onBeforeCompile = sh => {
+    sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `#include <opaque_fragment>
+      float ndv = abs(dot(normalize(normal), normalize(vViewPosition)));
+      gl_FragColor.a = mix(${rimAlpha.toFixed(3)}, ${faceAlpha.toFixed(3)}, pow(ndv, .5));`);
+  };
+  m.customProgramCacheKey = () => `glass-${faceAlpha}-${rimAlpha}`;
+  return m;
+}
+const M = {
+  white: phys({ color: '#f7f9f8', roughness: .42, clearcoat: .35, clearcoatRoughness: .3 }),
+  clear: { back: glass('#7e9f98', .02, .24, THREE.BackSide), front: glass('#86aaa2', .03, .46) },
+  green: { back: glass('#2c8a44', .18, .5, THREE.BackSide), front: glass('#3f9f55', .24, .8) },
+  line: phys({ color: '#a7b2ae', roughness: .6 }),
+  gold: phys({ color: '#e0b552', metalness: 1, roughness: .17 }),
+};
+const capMats = new Map();
+const capMat = (color, ribbed) => {
+  const key = color + (ribbed ? ':r' : '');
+  if (!capMats.has(key)) capMats.set(key, phys({ color, roughness: .38, clearcoat: .25, clearcoatRoughness: .3, flatShading: !!ribbed }));
+  return capMats.get(key);
+};
+
+/* ---------- geometry (millimetres) ---------- */
+const V = (x, y) => new THREE.Vector2(x, y);
+function profile(s) {
+  const { h, d, neck: n, shape } = s, bw = d / 2, n2 = n / 2;
+  const nh = Math.min(14, Math.max(6, h * .1));
+  const sh = { cyl: d * .3, taper: d * .32, boston: d * .55, round: d * .5, oval: d * .62 }[shape];
+  const tw = shape === 'taper' ? bw * .82 : bw, rb = shape === 'round' || shape === 'oval' ? d * .28 : d * .1;
+  const yb = h - nh - sh, yn = h - nh;
+  const pts = [V(.01, .6), V(bw * .35, .2), V(bw - rb, 0)];                       // slightly domed base
+  for (let i = 1; i <= 10; i++) { const a = -Math.PI / 2 + i / 10 * Math.PI / 2; pts.push(V(bw - rb + Math.cos(a) * rb, rb + Math.sin(a) * rb)); }
+  pts.push(V(tw, yb));
+  new THREE.CubicBezierCurve(V(tw, yb), V(tw, yb + sh * .7), V(n2, yb + sh * .45), V(n2, yn)).getPoints(18).slice(1).forEach(p => pts.push(p));
+  pts.push(V(n2, h - .8), V(n2 - .8, h), V(.01, h));
+  const rAt = y => y <= rb ? bw : y >= yb ? tw : bw + (tw - bw) * (y - rb) / (yb - rb);
+  return { pts, rb, yb, yn, rAt };
+}
+function capGeo(r, hgt, round, seg = 48) {                                          // cylinder with a rounded top edge
+  const e = Math.min(r, hgt) * round, pts = [V(r * .97, 0), V(r, Math.min(e * .4, hgt * .1)), V(r, hgt - e)];
+  for (let i = 1; i <= 8; i++) { const a = i / 8 * Math.PI / 2; pts.push(V(r - e + Math.cos(a) * e, hgt - e + Math.sin(a) * e)); }
+  pts.push(V(.01, hgt));
+  return new THREE.LatheGeometry(pts, seg);
+}
+function nozzleGeo(r0, r1, hgt) {
+  const pts = [];
+  for (let i = 0; i <= 14; i++) { const k = i / 14; pts.push(V(r0 + (r1 - r0) * Math.pow(k, .6), k * hgt)); }
+  pts.push(V(r1 * .7, hgt + r1 * .45), V(.01, hgt + r1 * .65));
+  return new THREE.LatheGeometry(pts, 32);
+}
+const halfWidth = s => Math.max(s.d / 2, s.neck * .58, s.cap === 'measure' ? s.d * .4 : 0, s.cap === 'pump' ? s.neck * 1.17 : 0);
+
+function labelTexture(kind, wMm, hMm, d) {
+  const W = 512, H = Math.round(W * hMm / wMm), c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  if (kind === 'transfer') {
+    const g = x.createLinearGradient(0, 0, W, H);
+    [[0, '#ff8a5c'], [.36, '#ffd166'], [.7, '#3ccf91'], [1, '#2b8fd6']].forEach(([o, col]) => g.addColorStop(o, col));
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.fillStyle = 'rgba(255,255,255,.9)'; x.beginPath(); x.arc(W * .63, H * .3, W * .07, 0, Math.PI * 2); x.fill();
+  }
+  const fs = Math.round(d * (kind === 'print-dark' || kind === 'print-light' ? .17 : .25) / wMm * W);   // letter height vs diameter
+  x.fillStyle = kind === 'print-dark' || kind === 'silk' ? '#0c3741' : '#ffffff'; x.textAlign = 'center';
+  x.font = `600 ${fs}px Onest, "Golos Text", sans-serif`;
+  x.fillText('ваш', W / 2, H * .46); x.fillText('бренд', W / 2, H * .46 + fs * 1.02);
+  x.globalAlpha = .55;
+  for (let i = 0; i < 3; i++) x.fillRect(W / 2 - fs * (1.5 - i * .25), H * .46 + fs * 1.55 + i * fs * .3, fs * (3 - i * .5), Math.max(2, fs * .07));
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+function addDeco(g, s, P, kind) {
+  const yA = P.rb + (P.yb - P.rb) * .16, yB = P.yb - (P.yb - P.rb) * .1, H = yB - yA, mid = (yA + yB) / 2;
+  if (kind === 'foil') {
+    [[mid + H * .08, s.d * .16], [mid - H * .07, s.d * .035]].forEach(([y, hh]) => {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(P.rAt(y) + .1, P.rAt(y) + .1, hh, 72, 1, true), M.gold); m.position.y = y; g.add(m);
+    });
+    return;
+  }
+  const L = kind === 'transfer' ? Math.PI * 1.3 : Math.PI * .62, r = P.rAt(mid);
+  const mat = phys({ map: labelTexture(kind, L * r, H, s.d), transparent: true, roughness: kind === 'transfer' ? .3 : .5, clearcoat: .3,
+                     depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(P.rAt(yB) + .1, P.rAt(yA) + .1, H, 64, 1, true, -L / 2, L), mat);
+  m.position.y = mid; m.renderOrder = 4; g.add(m);
+}
+function buildBottle(s, deco) {
+  const g = new THREE.Group(), P = profile(s), body = new THREE.LatheGeometry(P.pts, 72);
+  const add = (geo, mat, y = 0, order = 0) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.renderOrder = order; g.add(m); return m; };
+  if (s.tint === 'white') add(body, M.white);
+  else { const set = M[s.tint]; add(body, set.back, 0, 1); add(body, set.front, 0, 2); }
+  const n = s.neck, cw = n * 1.16, y0 = P.yn, C = capMat(s.capColor);
+  let top = s.h;
+  if (s.cap === 'screw') { add(capGeo(cw / 2, n * .62, .14, 40), capMat(s.capColor, true), y0); top = y0 + n * .62; }
+  if (s.cap === 'flip') {
+    const ch = n * .8; add(capGeo(cw / 2, ch, .18, 64), C, y0);
+    add(new THREE.TorusGeometry(cw / 2 + .04, .2, 6, 64), M.line, y0 + ch * .62).rotation.x = Math.PI / 2;
+    add(new THREE.BoxGeometry(n * .36, n * .09, n * .14), C, y0 + ch * .76).position.z = cw / 2 + n * .03;    // thumb tab
+    top = y0 + ch;
+  }
+  if (s.cap === 'measure') { const mw = s.d * .8, ch = s.d * .42; add(capGeo(mw / 2, ch, .12, 30), capMat(s.capColor, true), y0); top = y0 + ch; }
+  if (s.cap === 'dropper') { const ch = n * .5; add(capGeo(cw / 2, ch, .14, 48), C, y0); add(nozzleGeo(n * .36, n * .075, n * 1.35), C, y0 + ch); top = y0 + ch + n * 1.4; }
+  if (s.cap === 'wick') { const ch = n * .45; add(capGeo(cw / 2, ch, .14, 48), C, y0); add(capGeo(n * .3, n * 1.7, .9, 40), C, y0 + ch); top = y0 + ch + n * 1.7; }
+  if (s.cap === 'pump') {
+    const ch = n * .55, st = n * .95, hh = n * .36;
+    add(capGeo(cw * .55, ch, .14, 48), C, y0);
+    add(new THREE.CylinderGeometry(n * .11, n * .11, st, 24), C, y0 + ch + st / 2);
+    add(capGeo(n * .32, hh, .3, 40), C, y0 + ch + st);
+    const spout = add(new THREE.CylinderGeometry(n * .075, n * .075, n * .9, 16), C, y0 + ch + st + hh * .55);
+    spout.rotation.z = Math.PI / 2; spout.position.x = n * .72;
+    top = y0 + ch + st + hh;
+  }
+  if (deco) addDeco(g, s, P, deco);
+  return { group: g, top, halfW: halfWidth(s), streaks: s.tint === 'white' ? null : streaks(P) };
+}
+
+/* studio highlights on clear and tinted bottles: fixed to the lights, so they don't turn with the bottle */
+const streakTex = (() => {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 256; const x = c.getContext('2d');
+  const gx = x.createLinearGradient(0, 0, 64, 0);
+  gx.addColorStop(0, 'rgba(255,255,255,0)'); gx.addColorStop(.5, 'rgba(255,255,255,1)'); gx.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = gx; x.fillRect(0, 0, 64, 256);
+  x.globalCompositeOperation = 'destination-in';
+  const gy = x.createLinearGradient(0, 0, 0, 256);
+  gy.addColorStop(0, 'rgba(0,0,0,0)'); gy.addColorStop(.18, 'rgba(0,0,0,1)'); gy.addColorStop(.82, 'rgba(0,0,0,1)'); gy.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = gy; x.fillRect(0, 0, 64, 256);
+  return new THREE.CanvasTexture(c);
+})();
+function streaks(P) {
+  const g = new THREE.Group(), y0 = P.rb + (P.yb - P.rb) * .06, y1 = P.yb - (P.yb - P.rb) * .04;
+  [[-.62, .22, .7], [.8, .1, .35]].forEach(([th, len, op]) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(P.rAt(y1) + .2, P.rAt(y0) + .2, y1 - y0, 6, 1, true, th - len / 2, len),
+                             new THREE.MeshBasicMaterial({ map: streakTex, transparent: true, opacity: op, depthWrite: false, toneMapped: false }));
+    m.position.y = (y0 + y1) / 2; m.renderOrder = 5; g.add(m);
+  });
+  return g;
+}
+
+/* soft contact shadow */
+const shadowTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d'), gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(12,55,65,.34)'); gr.addColorStop(.5, 'rgba(12,55,65,.13)'); gr.addColorStop(1, 'rgba(12,55,65,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const shadowGeo = new THREE.PlaneGeometry(1, 1);
+function makeShadow(d) {
+  const m = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, toneMapped: false }));
+  m.rotation.x = -Math.PI / 2; m.position.y = .05; m.renderOrder = -1; m.userData.d = d;
+  return m;
+}
+function stageBackground(w, h) {                                                   // same gradient as the CSS .stage
+  const c = document.createElement('canvas'); c.width = 512; c.height = Math.max(1, Math.round(512 * h / w));
+  const x = c.getContext('2d'); x.fillStyle = '#f3f6f4'; x.fillRect(0, 0, c.width, c.height);
+  x.save(); x.translate(c.width * .72, c.height * .12); x.scale(c.width * 1.1, c.height * .9);
+  const g = x.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, '#ffffff'); g.addColorStop(.35, '#f7faf8'); g.addColorStop(.7, '#f3f6f4'); g.addColorStop(1, '#f3f6f4');
+  x.fillStyle = g; x.fillRect(-2, -2, 4, 4); x.restore();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+/* ---------- a view = one scene drawn into one canvas ---------- */
+const ease = k => 1 - Math.pow(1 - Math.min(1, Math.max(0, k)), 3);
+class View {
+  constructor(el, items, opt) {
+    this.el = el; this.opt = opt; this.visible = true; this.hover = 0; this.hoverTarget = 0; this.spin = 0; this.px = 0; this.py = 0;
+    this.scene = new THREE.Scene(); this.scene.environment = env;
+    this.scene.background = opt.hero ? null : new THREE.Color('#f3f6f4');
+    const key = new THREE.DirectionalLight('#ffffff', 1.6); key.position.set(-1.2, 2.4, 2.2); this.scene.add(key);
+    this.camera = new THREE.PerspectiveCamera(opt.fov || 24, 1, 1, 5000);
+    this.canvas = document.createElement('canvas'); this.canvas.className = 'gl'; this.canvas.setAttribute('aria-hidden', 'true');
+    el.prepend(this.canvas); this.ctx = this.canvas.getContext('2d');
+    this.setItems(items);
+  }
+  setItems(items) {
+    (this.bottles || []).forEach(b => { this.scene.remove(b.group, b.shadow); if (b.streaks) this.scene.remove(b.streaks); });
+    this.bottles = items.map((it, i) => {
+      const b = buildBottle(it.spec, it.deco), sh = makeShadow(it.spec.d);
+      b.group.position.x = sh.position.x = it.x;
+      this.scene.add(b.group, sh);
+      if (b.streaks) { b.streaks.position.x = it.x; this.scene.add(b.streaks); }
+      return { ...b, shadow: sh, x: it.x, i, phase: it.phase ?? (-.55 + i * 1.3) };
+    });
+    const minX = Math.min(...this.bottles.map(b => b.x - b.halfW)), maxX = Math.max(...this.bottles.map(b => b.x + b.halfW));
+    const maxY = Math.max(...this.bottles.map(b => b.top)) + (this.opt.lift || 4);
+    const minY = this.opt.hero ? -maxY * .2 : -maxY * .06;                       // room under the hero bottles for labels
+    this.bounds = { minX, maxX, minY, maxY };
+    if (this.size) this.fit();
+  }
+  resize() {
+    const w = Math.round(this.el.clientWidth * DPR), h = Math.round(this.el.clientHeight * DPR);
+    if (!w || !h) { this.size = null; return; }
+    if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
+    this.size = [w, h];
+    if (this.opt.hero) { if (this.scene.background) this.scene.background.dispose(); this.scene.background = stageBackground(w, h); }
+    this.fit();
+  }
+  fit() {
+    const [w, h] = this.size, { minX, maxX, minY, maxY } = this.bounds, aspect = w / h;
+    const tan = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+    this.dist = Math.max((maxY - minY) / 2 / tan, (maxX - minX) / 2 / (tan * aspect)) * (this.opt.margin || 1.14);
+    this.center = new THREE.Vector3((minX + maxX) / 2, (minY + maxY) / 2, 0);
+    this.camera.aspect = aspect; this.camera.updateProjectionMatrix();
+  }
+  update(t, dt) {
+    const o = this.opt, life = REDUCED ? 99 : t - this.t0;
+    this.hover += (this.hoverTarget - this.hover) * Math.min(1, dt * 6);
+    if (!REDUCED) this.spin += dt * (o.spin || .4) * (1 + this.hover * 5);
+    this.bottles.forEach(b => {
+      const e = o.hero ? ease((life - b.i * .12) / 1.25) : 1;
+      const bob = REDUCED ? 0 : (Math.sin(t * 1.1 + b.phase * 2) + 1) * .5 * ((o.bob || 1.4) + this.hover * 2.2);
+      const lift = bob + this.hover * 3;
+      b.group.position.y = lift + (1 - e) * 170;
+      if (b.streaks) b.streaks.position.y = b.group.position.y;
+      b.group.rotation.y = b.phase + this.spin * (1 + b.i * .06) - (1 - e) * 2.4;
+      b.group.rotation.z = REDUCED ? 0 : Math.sin(t * .8 + b.phase * 3) * .012;
+      const k = 1 + lift * .012; b.shadow.scale.set(b.shadow.userData.d * 1.9 * k, b.shadow.userData.d * 1.9 * k, 1);
+      b.shadow.material.opacity = (1 - lift * .05) * e;
+    });
+    // camera: gentle sway, plus pointer parallax on the hero
+    this.px += ((o.hero ? pointer.x : 0) - this.px) * Math.min(1, dt * 3);
+    this.py += ((o.hero ? pointer.y : 0) - this.py) * Math.min(1, dt * 3);
+    const yaw = (REDUCED ? 0 : Math.sin(t * .25) * (o.hero ? .09 : .05)) + this.px * .24;
+    const pitch = (o.pitch ?? .16) + this.py * .05, c = this.center, d = this.dist;
+    this.camera.position.set(c.x + Math.sin(yaw) * Math.cos(pitch) * d, c.y + Math.sin(pitch) * d, Math.cos(yaw) * Math.cos(pitch) * d);
+    this.camera.lookAt(c);
+    if (o.labels) this.placeLabels(life);
+  }
+  placeLabels(life) {
+    const W = this.el.clientWidth, H = this.el.clientHeight, v = new THREE.Vector3();
+    this.bottles.forEach((b, i) => {
+      v.set(b.x, 0, 0).project(this.camera);
+      const s = this.labelEls[i].style; s.left = ((v.x + 1) / 2 * W).toFixed(1) + 'px'; s.top = ((1 - v.y) / 2 * H + 14).toFixed(1) + 'px';
+    });
+    this.opt.labels.classList.toggle('on', life > 1.2);
+  }
+}
+
+/* ---------- one renderer, many canvases ---------- */
+let bufW = 0, bufH = 0;
+function draw(v) {
+  const [w, h] = v.size;
+  if (w > bufW || h > bufH) { bufW = Math.max(bufW, w); bufH = Math.max(bufH, h); renderer.setSize(bufW, bufH, false); }
+  renderer.setViewport(0, 0, w, h); renderer.setScissor(0, 0, w, h);
+  renderer.render(v.scene, v.camera);
+  v.ctx.drawImage(renderer.domElement, 0, bufH - h, w, h, 0, 0, w, h);              // WebGL draws bottom-up
+}
+
+const pointer = { x: 0, y: 0 };
+const views = [];
+const lineup = (ids, gap, deco = {}, phase = {}) => {
+  let x = 0;
+  const items = ids.map(id => { const spec = BY_ID[id].draw, hw = halfWidth(spec), it = { id, spec, deco: deco[id], phase: phase[id], x: x + hw }; x += hw * 2 + gap; return it; });
+  items.forEach(it => { it.x -= (x - gap) / 2; });
+  return items;
+};
+
+// hero: the lineup at true relative scale, with HTML labels that follow the projection
+const stage = document.querySelector('.stage'), labelsEl = document.getElementById('labels3d');
+const heroIds = () => stage.clientWidth < 520 ? ['naturae', 'basis250', 'uno100', 'vika25'] : ['naturae', 'ruby300', 'basis250', 'uno100', 'vika25'];
+const HERO_PRINT = { naturae: 'print-dark', basis250: 'print-light' };
+const HERO_PHASE = { naturae: -.5, ruby300: -.75, basis250: -.45, uno100: -.3, vika25: 0 };   // prints and spout face the camera as the entrance ends
+const heroItems = () => lineup(heroIds(), 16, HERO_PRINT, HERO_PHASE);
+let heroSet = heroIds().join();
+const hero = new View(stage, heroItems(), { hero: true, labels: labelsEl, fov: 22, pitch: .14, spin: .3, bob: 2.2, lift: 6 });
+function heroLabels() {
+  const ids = heroIds();
+  labelsEl.innerHTML = ids.map(id => `<span>${BY_ID[id].name.replace(/ \d+ мл$/, '')}<br>${BY_ID[id].vol} мл</span>`).join('');
+  hero.labelEls = [...labelsEl.children];
+}
+heroLabels(); views.push(hero);
+addEventListener('pointermove', e => {
+  const r = stage.getBoundingClientRect();
+  pointer.x = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2) / 1.5));
+  pointer.y = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2) / 1.5));
+}, { passive: true });
+
+// catalog cards, segment cards, decoration examples
+document.querySelectorAll('#grid .card').forEach(card => {
+  const v = new View(card.querySelector('.pic'), lineup([card.dataset.id], 0), { fov: 24, pitch: .2, margin: 1.12 });
+  v.hoverEl = card; views.push(v);
+});
+document.querySelectorAll('.app[data-filter] .art').forEach(art => {
+  const v = new View(art, lineup(art.dataset.art.split(','), 12), { fov: 24, pitch: .2, margin: 1.16 });
+  v.hoverEl = art.closest('.app'); views.push(v);
+});
+document.querySelectorAll('.deco .pic').forEach(pic => {
+  const v = new View(pic, [{ spec: DECO_BOTTLE, deco: pic.dataset.deco, x: 0, phase: -.25 }], { fov: 22, pitch: .1, margin: 1.04, spin: .35 });
+  v.hoverEl = pic.closest('article'); views.push(v);
+});
+views.forEach(v => {
+  if (v.hoverEl) { v.hoverEl.addEventListener('pointerenter', () => { v.hoverTarget = 1; }); v.hoverEl.addEventListener('pointerleave', () => { v.hoverTarget = 0; }); }
+});
+
+/* ---------- switch the page to 3D ---------- */
+document.documentElement.classList.add('is-3d');
+const t0 = performance.now() / 1000;
+const resized = new ResizeObserver(entries => entries.forEach(en => {
+  const v = views.find(x => x.el === en.target); if (!v) return;
+  if (v === hero && heroIds().join() !== heroSet) { heroSet = heroIds().join(); hero.setItems(heroItems()); heroLabels(); }
+  v.resize();
+  if (v.size) { v.update(performance.now() / 1000, 0); draw(v); }
+}));
+const seen = new IntersectionObserver(entries => entries.forEach(en => {
+  const v = views.find(x => x.el === en.target); if (v) v.visible = en.isIntersecting;
+}), { rootMargin: '200px' });
+views.forEach(v => { v.t0 = t0; v.resize(); if (v.size) { v.update(t0, 0); draw(v); } resized.observe(v.el); seen.observe(v.el); });
+
+if (!REDUCED) {
+  let last = performance.now();
+  const loop = now => {
+    const t = now / 1000, dt = Math.min(.05, (now - last) / 1000); last = now;
+    for (const v of views) if (v.visible && v.size) { v.update(t, dt); draw(v); }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
 </script>
 </body>
 </html>
